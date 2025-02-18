@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     private Node[,] NodeMatrix;
     public int startPosx, startPosy;
     public int endPosx, endPosy;
+    public int minObstacles = 10, maxObstacles = 15;
     void Awake()
     {
         Instance = this;
@@ -44,7 +45,31 @@ public class GameManager : MonoBehaviour
         //GameMatrix[startPosx, startPosy] = 1;
         NodeMatrix = new Node[Size, Size];
         CreateNodes();
+        CreateObstacles();
         SearchAlgorythmAStar();
+    }
+    private void CreateObstacles()
+    {
+        int x, y;
+        int obstacles = Random.Range(minObstacles, maxObstacles);
+        for (int i = 0; i < obstacles; i++)
+        {
+            x = Random.Range(0, Size);
+            y = Random.Range(0, Size);
+            if (x != startPosx && y != startPosy && x != endPosx && y != endPosy)
+            {
+                foreach (var way in NodeMatrix[x, y].WayList)
+                {
+                    way.NodeDestiny.WayList.Find(waySelected => waySelected.NodeDestiny == NodeMatrix[x, y]).Cost = float.MaxValue;
+                    GameObject circle = Instantiate(token, NodeMatrix[x, y].RealPosition, Quaternion.identity);
+                    circle.GetComponent<SpriteRenderer>().color = Color.black;
+                }
+            }
+            else
+            {
+                i--;
+            }
+        }
     }
     public void SearchAlgorythmAStar()
     {
@@ -105,7 +130,7 @@ public class GameManager : MonoBehaviour
         while (currentNode != startNode)
         {
             GameObject circle = Instantiate(token, currentNode.RealPosition, Quaternion.identity);
-            circle.GetComponent<SpriteRenderer>().color = Color.black;
+            circle.GetComponent<SpriteRenderer>().color = Color.magenta;
             currentNode = currentNode.NodeParent;
             yield return new WaitForSeconds(0.5f);
         }
